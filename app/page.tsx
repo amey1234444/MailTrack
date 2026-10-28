@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   CheckCheck,
@@ -26,9 +27,18 @@ export default function Home() {
           </Link>
         </div>
       </nav>
-      <section className="marketing-hero">
+      <section className="marketing-hero landscape-hero">
+        <Image
+          src="/images/mountain-lake.webp"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 800px) 100vw, 92vw"
+          className="landscape-image"
+        />
+        <div className="landscape-shade" aria-hidden="true" />
         <div>
-          <span className="eyebrow">YOUR EMAIL, WITH MORE CONTEXT</span>
+          <span className="eyebrow">LESS NOISE. MORE PERSPECTIVE.</span>
           <h1>
             Send with purpose.
             <br />
@@ -45,7 +55,7 @@ export default function Home() {
             <Link href="/help">See how it works ↗</Link>
           </div>
           <span className="hero-note">
-            <ShieldCheck size={16} /> Permission-based access. No Google OAuth setup.
+            <ShieldCheck size={16} /> Your conversations. A clearer perspective.
           </span>
         </div>
         <aside className="product-story">

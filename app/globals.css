@@ -2768,3 +2768,248 @@ input[type='checkbox']:disabled {
     background: Highlight;
   }
 }
+
+/* Landscape edition: editorial imagery, warm surfaces, restrained chrome. */
+.marketing {
+  max-width: 1500px;
+  padding: 0 3vw;
+}
+.marketing-nav {
+  padding: 26px 1vw;
+}
+.landscape-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 690px;
+  padding: 80px 5vw;
+  margin: 8px 0 64px;
+  border-radius: 28px;
+  gap: 5vw;
+  color: #fff;
+  background: #243b3e;
+}
+.landscape-image {
+  object-fit: cover;
+  object-position: center;
+  z-index: -2;
+}
+.landscape-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(9, 26, 29, 0.9) 0%,
+      rgba(13, 31, 32, 0.68) 48%,
+      rgba(17, 34, 35, 0.38) 100%
+    ),
+    linear-gradient(0deg, rgba(12, 29, 32, 0.45), transparent 55%);
+}
+.landscape-hero .eyebrow {
+  color: #dce6d8;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+}
+.landscape-hero h1 {
+  font-size: clamp(44px, 4.8vw, 72px);
+  font-weight: 500;
+  letter-spacing: -2.7px;
+  line-height: 1.12;
+}
+.landscape-hero h1 em {
+  display: inline-block;
+  color: #e0e9cf;
+  font-family: Georgia, serif;
+}
+.landscape-hero p {
+  color: #e1e7e2;
+  font-size: 16px;
+  max-width: 470px;
+}
+.landscape-hero .hero-actions .primary {
+  background: #e4edce;
+  color: #21362c;
+  border-color: #e4edce;
+  min-height: 50px;
+  padding: 14px 22px;
+}
+.landscape-hero .hero-actions > a:not(.primary) {
+  color: #fff;
+  font-size: 14px;
+}
+.landscape-hero .hero-note {
+  color: #dce5dc;
+  font-size: 12px;
+}
+.landscape-hero .product-story {
+  transform: none;
+  background: rgba(17, 35, 37, 0.7);
+  backdrop-filter: blur(18px);
+  border: 1px solid #ffffff30;
+  box-shadow: 0 24px 64px #071a2430;
+  border-radius: 22px;
+  padding: 30px;
+  max-width: 390px;
+  justify-self: end;
+}
+.landscape-hero .product-story h2 {
+  color: #fff;
+  font-size: 30px;
+  font-weight: 400;
+}
+.landscape-hero .story-orbit {
+  background: #ffffff14;
+  border: 1px solid #ffffff24;
+  color: #dfeacb;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  margin: 24px 0;
+}
+.landscape-hero .story-orbit svg {
+  width: 30px;
+}
+.landscape-hero .story-row {
+  background: #ffffff0c;
+  border: 1px solid #ffffff1a;
+  color: #f3f6f0;
+  padding: 14px 12px;
+}
+.landscape-hero .story-row span {
+  color: #d7e1d7;
+}
+.landscape-hero .product-story p {
+  font-size: 12px;
+  color: #d4ded7;
+}
+.marketing .feature-grid {
+  border-top: 0;
+  padding: 0 1vw 70px;
+  gap: 24px;
+}
+.marketing .feature-grid article {
+  padding: 32px;
+  background: #fff;
+  border-color: #e5e7df;
+  box-shadow: 0 8px 30px #25382b04;
+}
+.marketing .feature-grid article > svg {
+  color: #647e54;
+  background: #f0f3e9;
+  box-sizing: content-box;
+  padding: 13px;
+  border-radius: 14px;
+}
+.marketing-footer {
+  margin-inline: 1vw;
+}
+.landscape-auth {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #243b3e;
+  min-height: 100vh;
+}
+.landscape-auth .landscape-image {
+  object-position: 42% center;
+}
+.landscape-auth .landscape-shade {
+  background: linear-gradient(180deg, #11282cc9, #11282c75 35%, #11282cd9);
+}
+.landscape-auth h1 {
+  font-weight: 400;
+  line-height: 1.25;
+}
+.landscape-auth p {
+  color: #e0e8df;
+}
+.landscape-auth .eyebrow {
+  color: #d7e2d0;
+}
+.landscape-auth em {
+  color: #dfe9c8;
+}
+.landscape-auth > span {
+  color: #e0e8df;
+}
+.auth-content {
+  background: #fafaf7;
+}
+.auth-card h1 {
+  font-weight: 500;
+  letter-spacing: -1.1px;
+}
+.auth-card .connect-form input:not([type='checkbox']) {
+  min-height: 50px;
+  border-radius: 12px;
+  background: #fff;
+}
+.auth-card .connect-form label {
+  font-size: 13px;
+}
+.auth-card .connect-form .connect-consent {
+  font-size: 12px;
+}
+.auth-card .connect-form {
+  gap: 20px;
+}
+.settings-panel,
+.panel {
+  border-color: #e3e7dd;
+}
+.public-card {
+  box-shadow: 0 16px 60px #213a3009;
+}
+@media (max-width: 1050px) {
+  .landscape-hero {
+    padding: 56px 4vw;
+    gap: 28px;
+  }
+  .landscape-hero h1 {
+    font-size: 48px;
+  }
+  .landscape-hero .product-story {
+    padding: 24px;
+  }
+}
+@media (max-width: 850px) {
+  .landscape-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 48px 7vw;
+    margin-bottom: 36px;
+    border-radius: 22px;
+  }
+  .landscape-hero .product-story {
+    justify-self: stretch;
+    max-width: none;
+    margin-top: 12px;
+  }
+  .landscape-hero h1 {
+    font-size: clamp(39px, 8vw, 58px);
+    letter-spacing: -1.8px;
+  }
+  .landscape-shade {
+    background: linear-gradient(180deg, #10292cdf, #10292c85);
+  }
+  .landscape-auth {
+    min-height: 380px;
+  }
+  .landscape-auth h1 {
+    font-size: 34px;
+  }
+  .marketing .feature-grid {
+    padding-bottom: 40px;
+  }
+  .marketing .feature-grid article {
+    padding: 26px;
+  }
+  .marketing-nav {
+    gap: 12px;
+  }
+  .marketing-nav > div {
+    gap: 14px;
+  }
+}

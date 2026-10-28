@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { CheckCheck, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { currentUser } from '@/lib/auth';
@@ -19,7 +20,16 @@ export default async function Login() {
   if (user) redirect('/workspace');
   return (
     <main className="auth-layout">
-      <aside className="auth-story">
+      <aside className="auth-story landscape-auth">
+        <Image
+          src="/images/mountain-lake.webp"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 850px) 100vw, 46vw"
+          className="landscape-image"
+        />
+        <div className="landscape-shade" aria-hidden="true" />
         <Link href="/" className="brand">
           <CheckCheck /> mailtrack.
         </Link>
