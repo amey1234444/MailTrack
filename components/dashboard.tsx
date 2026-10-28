@@ -231,7 +231,7 @@ export default function Dashboard({
     }
   };
   function connect() {
-    if (configured) window.location.href = '/api/auth/google';
+    if (configured) window.location.href = '/connect';
     else setShowConnect(true);
   }
   async function sync(accountId?: string) {
@@ -944,7 +944,7 @@ export default function Dashboard({
               <div>
                 <h2>Your data, your choice</h2>
                 <p>
-                  Disconnect a mailbox in Accounts to revoke Google access and delete its synced
+                  Disconnect a mailbox in Accounts to remove stored access and delete its synced
                   messages and analytics. Deleting your workspace also removes your documents and
                   all stored activity.
                 </p>
@@ -1127,14 +1127,16 @@ export default function Dashboard({
               <ShieldCheck size={30} />
             </div>
             <h3>Your mailbox. Your permission.</h3>
-            <p>MailTrack uses Google’s consent screen. It never asks for your Gmail password.</p>
+            <p>
+              Connect with your Gmail address and a dedicated Google App Password. No OAuth client
+              credentials are needed.
+            </p>
             <div className="info-box">
               <div>
                 <strong>Deployment setup required</strong>
                 <p>
-                  Add the environment variables from .env.example in Vercel, connect PostgreSQL, run
-                  the database migration, and configure Google OAuth. Then return here to connect
-                  Gmail.
+                  Add the database, encryption key, and cron secret in Vercel. Database migrations
+                  run automatically during deployment. Then connect Gmail using an App Password.
                 </p>
               </div>
             </div>
@@ -1482,7 +1484,7 @@ function Accounts({
                   }
                   if (
                     window.confirm(
-                      'Revoke Google access and permanently delete this mailbox’s synced messages and tracking history? Other connections using this Google grant may also need reconnection.',
+                      'Delete this mailbox’s stored credentials, synced messages, and tracking history? Delete its App Password in Google settings to invalidate the password itself.',
                     )
                   )
                     void action(async () => {
@@ -1503,7 +1505,7 @@ function Accounts({
           <Empty
             icon={Inbox}
             title="Connect your first mailbox"
-            text="Sign in with Google to authorize Gmail access. Your password stays with Google."
+            text="Connect using a dedicated Google App Password. It is stored encrypted by this deployment."
           />
         </section>
       )}
@@ -1515,7 +1517,7 @@ function Accounts({
           <h2>Ask for access. Never assume it.</h2>
           <p>
             Send an invitation to a mailbox owner. They’ll see exactly what access they’re granting
-            and sign in with Google to approve it. Invitations expire after 24 hours.
+            and enter their own App Password to approve it. Invitations expire after 24 hours.
           </p>
         </div>
         <form
@@ -1781,7 +1783,7 @@ function Mailbox({
             </p>
             <a
               className="button secondary"
-              href={`https://mail.google.com/mail/u/?authuser=${encodeURIComponent(accounts.find((a) => a.id === account)?.email || '')}#all/${opened.gmailId}`}
+              href={`https://mail.google.com/mail/u/?authuser=${encodeURIComponent(accounts.find((a) => a.id === account)?.email || '')}#all`}
               target="_blank"
               rel="noreferrer"
             >

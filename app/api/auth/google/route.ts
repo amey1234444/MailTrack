@@ -5,6 +5,8 @@ import { currentUser } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { scopes } from '@/lib/google';
 export const GET = api(async (req) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)
+    return Response.redirect(`${origin()}/connect`);
   if (!configured()) return Response.redirect(`${origin()}/?setup=1`);
   const invite = new URL(req.url).searchParams.get('invite');
   let expectedEmail = '';

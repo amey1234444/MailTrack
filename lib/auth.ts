@@ -13,7 +13,7 @@ export async function currentUser(): Promise<User | null> {
 }
 export async function requireUser() {
   const u = await currentUser();
-  if (!u) throw new HttpError(401, 'Please sign in with Google');
+  if (!u) throw new HttpError(401, 'Please sign in to your workspace');
   return u;
 }
 export async function createSession(userId: string) {

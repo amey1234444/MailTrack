@@ -1,15 +1,15 @@
 export function validateEnvironment(env) {
-  const required = [
-    'APP_URL',
-    'DATABASE_URL',
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'TOKEN_ENCRYPTION_KEY',
-    'CRON_SECRET',
-  ];
+  const required = ['DATABASE_URL', 'TOKEN_ENCRYPTION_KEY', 'CRON_SECRET'];
   const errors = required.filter((key) => !env[key]?.trim()).map((key) => `${key} is required`);
   try {
-    const u = new URL(env.APP_URL);
+    const u = new URL(
+      env.APP_URL ||
+        (env.VERCEL_PROJECT_PRODUCTION_URL
+          ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
+          : env.VERCEL_URL
+            ? `https://${env.VERCEL_URL}`
+            : ''),
+    );
     if (
       u.protocol !== 'https:' ||
       u.pathname !== '/' ||

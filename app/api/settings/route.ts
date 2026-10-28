@@ -26,7 +26,8 @@ export const DELETE = api(async (req) => {
   const accounts = await query<Account>('SELECT * FROM accounts WHERE user_id=$1', [user.id]);
   for (const a of accounts) {
     await revoke(a);
-    await query("UPDATE accounts SET status='reconnect' WHERE google_sub=$1", [a.google_sub]);
+    if (a.provider !== 'app_password')
+      await query("UPDATE accounts SET status='reconnect' WHERE google_sub=$1", [a.google_sub]);
   }
   await query('DELETE FROM users WHERE id=$1', [user.id]);
   (await cookies()).delete('mt_session');

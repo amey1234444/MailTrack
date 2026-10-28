@@ -1,3 +1,4 @@
+import { smtpSend, imapMessage } from './mailbox';
 import { query } from './db';
 import { seal, unseal, origin, HttpError } from './security';
 import type { Account } from './types';
@@ -62,6 +63,14 @@ export async function accessToken(account: Account) {
   return t.access_token as string;
 }
 export async function gmail<T>(account: Account, path: string, init: RequestInit = {}): Promise<T> {
+  if (account.provider === 'app_password') {
+    if (account.status !== 'connected') throw new HttpError(409, 'Reconnect this mailbox');
+    if (path === 'messages/send')
+      return (await smtpSend(account, JSON.parse(String(init.body)).raw)) as T;
+    if (path.startsWith('messages/'))
+      return (await imapMessage(account, decodeURIComponent(path.slice(9).split('?')[0]))) as T;
+    throw new HttpError(400, 'Unsupported mailbox operation');
+  }
   const access = await accessToken(account);
   const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`, {
     ...init,
@@ -87,6 +96,7 @@ export async function gmail<T>(account: Account, path: string, init: RequestInit
   return r.json();
 }
 export async function revoke(account: Account) {
+  if (account.provider === 'app_password') return;
   const r = await fetch('https://oauth2.googleapis.com/revoke', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

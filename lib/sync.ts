@@ -1,3 +1,4 @@
+import { syncImap } from './imap-sync';
 import { query } from './db';
 import { gmail } from './google';
 import { id, HttpError } from './security';
@@ -70,13 +71,22 @@ async function fetchMessage(account: Account, messageId: string) {
     else throw e;
   }
 }
-export async function syncMailbox(account: Account) {
+export async function syncMailbox(
+  account: Account,
+): Promise<{
+  more: boolean;
+  processed: number;
+  busy?: boolean;
+  initial?: boolean;
+  reset?: boolean;
+}> {
   const claimed = await query(
     "UPDATE accounts SET sync_lock_until=now()+interval '2 minutes' WHERE id=$1 AND (sync_lock_until IS NULL OR sync_lock_until<now()) RETURNING id",
     [account.id],
   );
   if (!claimed.length) return { busy: true, more: true, processed: 0 };
   try {
+    if (account.provider === 'app_password') return await syncImap(account);
     if (!account.sync_complete) {
       if (!account.history_id) {
         const profile = await gmail<{ historyId: string }>(account, 'profile');

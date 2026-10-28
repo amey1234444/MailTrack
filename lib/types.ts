@@ -6,6 +6,8 @@ export interface User {
   timezone: string;
 }
 export interface Account {
+  provider?: 'oauth' | 'app_password';
+  imap_cursor?: { folder: number; uid: number; validity: string } | null;
   id: string;
   user_id: string;
   google_sub: string;

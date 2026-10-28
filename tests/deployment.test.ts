@@ -3,8 +3,6 @@ import { validateEnvironment } from '../scripts/config.mjs';
 const valid = {
   APP_URL: 'https://mail.example.com',
   DATABASE_URL: 'postgresql://user:pass@db.example.com/mail',
-  GOOGLE_CLIENT_ID: 'client',
-  GOOGLE_CLIENT_SECRET: 'secret',
   TOKEN_ENCRYPTION_KEY: Buffer.alloc(32).toString('base64'),
   CRON_SECRET: 'x'.repeat(32),
 };
@@ -20,4 +18,14 @@ it('rejects insecure origins and weak encryption keys', () => {
   });
   expect(result).toContain('APP_URL must be a plain HTTPS origin');
   expect(result).toContain('TOKEN_ENCRYPTION_KEY must encode 32 bytes');
+});
+
+it('uses Vercel production URL without APP_URL or Google OAuth credentials', () => {
+  expect(
+    validateEnvironment({
+      ...valid,
+      APP_URL: undefined,
+      VERCEL_PROJECT_PRODUCTION_URL: 'mailtrack.vercel.app',
+    }),
+  ).toEqual([]);
 });

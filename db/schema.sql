@@ -71,3 +71,10 @@ CREATE INDEX IF NOT EXISTS links_delivery ON links(delivery_id);
 CREATE INDEX IF NOT EXISTS documents_owner ON documents(user_id);
 CREATE INDEX IF NOT EXISTS shares_document ON document_shares(document_id);
 CREATE INDEX IF NOT EXISTS shares_delivery ON document_shares(delivery_id);
+
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS provider text NOT NULL DEFAULT 'oauth';
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS imap_cursor jsonb;
+ALTER TABLE mailbox_messages ADD COLUMN IF NOT EXISTS source_folder text;
+ALTER TABLE mailbox_messages ADD COLUMN IF NOT EXISTS source_validity text;
+ALTER TABLE mailbox_messages ADD COLUMN IF NOT EXISTS source_uid bigint;
+CREATE INDEX IF NOT EXISTS mailbox_source ON mailbox_messages(account_id,source_folder);

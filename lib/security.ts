@@ -33,7 +33,14 @@ export function equal(a: string, b: string) {
   return x.length === y.length && timingSafeEqual(x, y);
 }
 export function origin() {
-  const u = new URL(process.env.APP_URL || 'http://localhost:3000');
+  const u = new URL(
+    process.env.APP_URL ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : 'http://localhost:3000'),
+  );
   if (u.protocol !== 'https:' && u.hostname !== 'localhost')
     throw new Error('APP_URL must use HTTPS');
   return u.origin;
@@ -58,13 +65,7 @@ export async function rateLimit(key: string, max: number, seconds: number) {
   if (r.hits > max) throw new HttpError(429, 'Too many requests. Please try again later.');
 }
 export function configured() {
-  return [
-    'DATABASE_URL',
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'TOKEN_ENCRYPTION_KEY',
-    'APP_URL',
-  ].every((k) => !!process.env[k]);
+  return ['DATABASE_URL', 'TOKEN_ENCRYPTION_KEY'].every((k) => !!process.env[k]);
 }
 export const cookieOptions = {
   httpOnly: true,

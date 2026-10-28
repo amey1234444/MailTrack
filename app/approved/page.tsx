@@ -11,7 +11,7 @@ export default function Approved() {
         </p>
         <p className="muted">
           You can stop future access in{' '}
-          <a href="https://myaccount.google.com/permissions">Google Account permissions</a>. The
+          <a href="https://myaccount.google.com/apppasswords">Google App Password settings</a>. The
           workspace owner can disconnect the mailbox to delete stored information.
         </p>
       </section>

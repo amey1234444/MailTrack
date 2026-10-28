@@ -8,7 +8,8 @@ export const DELETE = api(async (req) => {
   const user = await requireUser(),
     account = await ownedAccount(user.id, new URL(req.url).pathname.split('/').pop()!);
   await revoke(account);
-  await query("UPDATE accounts SET status='reconnect' WHERE google_sub=$1", [account.google_sub]);
+  if (account.provider !== 'app_password')
+    await query("UPDATE accounts SET status='reconnect' WHERE google_sub=$1", [account.google_sub]);
   await query('DELETE FROM accounts WHERE id=$1', [account.id]);
   return Response.json({ ok: true });
 });

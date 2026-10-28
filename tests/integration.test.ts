@@ -7,8 +7,15 @@ const mocks = vi.hoisted(() => ({
   gmail: vi.fn(),
   revoke: vi.fn(),
   exchange: vi.fn(),
+  verifyMailbox: vi.fn(),
+  imapClient: vi.fn(),
 }));
 vi.mock('@/lib/db', () => ({ query: mocks.query }));
+vi.mock('@/lib/mailbox', async () => ({
+  ...(await vi.importActual('@/lib/mailbox')),
+  verifyMailbox: mocks.verifyMailbox,
+  imapClient: mocks.imapClient,
+}));
 vi.mock('next/headers', () => ({ cookies: mocks.cookies }));
 vi.mock('@/lib/google', async () => ({
   ...(await vi.importActual('@/lib/google')),
@@ -17,7 +24,7 @@ vi.mock('@/lib/google', async () => ({
   exchange: mocks.exchange,
 }));
 import { query } from '@/lib/db';
-import { seal, hash, id, token } from '@/lib/security';
+import { seal, unseal, hash, id, token } from '@/lib/security';
 import { ownedAccount, currentUser } from '@/lib/auth';
 import { sendMessage, processMessage } from '@/lib/send';
 import { syncMailbox, saveMailboxMessage } from '@/lib/sync';
@@ -27,6 +34,7 @@ import { GET as click } from '@/app/l/[token]/route';
 import { GET as dashboard } from '@/app/api/dashboard/route';
 import { GET as detail } from '@/app/api/messages/[id]/route';
 import { GET as exportCsv } from '@/app/api/export/route';
+import { POST as passwordConnect } from '@/app/api/auth/password/route';
 import { GET as oauthStart } from '@/app/api/auth/google/route';
 import { GET as oauthCallback } from '@/app/api/auth/callback/route';
 import { POST as pdfEvent } from '@/app/api/public/documents/[token]/events/route';
@@ -74,6 +82,9 @@ beforeEach(async () => {
     set: (k: string, v: string) => jar.set(k, v),
     delete: (k: string) => jar.delete(k),
   });
+  delete process.env.ALLOWED_EMAILS;
+  mocks.verifyMailbox.mockReset();
+  mocks.verifyMailbox.mockResolvedValue(undefined);
   mocks.gmail.mockReset();
   mocks.revoke.mockReset();
   mocks.revoke.mockResolvedValue(undefined);
@@ -428,4 +439,138 @@ it('validates real PDFs and rejects non-PDF uploads', async () => {
       )
     ).status,
   ).toBe(400);
+});
+
+const credentials = { email: 'new@gmail.com', password: 'abcd efgh ijkl mnop', consent: true };
+it('creates an encrypted App Password connection and session without OAuth configuration', async () => {
+  jar.clear();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  const r = await passwordConnect(req('/api/auth/password', 'POST', credentials));
+  expect(r.status).toBe(200);
+  expect(mocks.verifyMailbox).toHaveBeenCalledWith(credentials.email, 'abcdefghijklmnop');
+  const [a] = await query("SELECT * FROM accounts WHERE provider='app_password'");
+  expect(a.refresh_token).not.toContain('abcdefghijklmnop');
+  expect(unseal(a.refresh_token)).toBe('abcdefghijklmnop');
+  expect((await currentUser())?.email).toBe(credentials.email);
+  expect(await r.text()).not.toContain(a.refresh_token);
+});
+it('requires explicit consent and rejects a normal account password', async () => {
+  expect(
+    (await passwordConnect(req('/api/auth/password', 'POST', { ...credentials, consent: false })))
+      .status,
+  ).toBe(400);
+  expect(
+    (
+      await passwordConnect(
+        req('/api/auth/password', 'POST', { ...credentials, password: 'ordinary-password' }),
+      )
+    ).status,
+  ).toBe(400);
+  expect(mocks.verifyMailbox).not.toHaveBeenCalled();
+});
+it('does not persist credentials or issue a session after failed mailbox verification', async () => {
+  jar.clear();
+  mocks.verifyMailbox.mockRejectedValue(new Error('invalid credentials'));
+  expect((await passwordConnect(req('/api/auth/password', 'POST', credentials))).status).toBe(500);
+  expect(await query("SELECT * FROM accounts WHERE provider='app_password'")).toHaveLength(0);
+  expect(await currentUser()).toBeNull();
+});
+it('enforces the signup allowlist before connecting to Google', async () => {
+  jar.clear();
+  process.env.ALLOWED_EMAILS = 'owner@example.com';
+  expect((await passwordConnect(req('/api/auth/password', 'POST', credentials))).status).toBe(403);
+  expect(mocks.verifyMailbox).not.toHaveBeenCalled();
+});
+it('binds App Password approval to the invited email, consumes once, and never creates an owner session', async () => {
+  jar.clear();
+  const invite = token();
+  await query(
+    "INSERT INTO invitations(id,user_id,email,token_hash,expires_at) VALUES('invite-p','user-a',$1,$2,now()+interval '1 day')",
+    [credentials.email, hash(invite)],
+  );
+  expect(
+    (
+      await passwordConnect(
+        req('/api/auth/password', 'POST', { ...credentials, email: 'wrong@gmail.com', invite }),
+      )
+    ).status,
+  ).toBe(403);
+  const r = await passwordConnect(req('/api/auth/password', 'POST', { ...credentials, invite }));
+  expect(r.status).toBe(200);
+  expect(await r.json()).toEqual({ redirect: '/approved' });
+  expect(await currentUser()).toBeNull();
+  expect(
+    (await query("SELECT user_id FROM accounts WHERE provider='app_password'"))[0].user_id,
+  ).toBe('user-a');
+  expect(
+    (await passwordConnect(req('/api/auth/password', 'POST', { ...credentials, invite }))).status,
+  ).toBe(403);
+});
+it('rate-limits repeated credential attempts and rejects cross-origin submissions', async () => {
+  jar.clear();
+  expect(
+    (
+      await passwordConnect(
+        new Request('https://mail.example.com/api/auth/password', {
+          method: 'POST',
+          headers: { origin: 'https://evil.example' },
+          body: JSON.stringify(credentials),
+        }),
+      )
+    ).status,
+  ).toBe(403);
+  await query("INSERT INTO rate_limits(key,hits,reset_at) VALUES($1,10,now()+interval '1 hour')", [
+    `login-email:${hash(credentials.email)}`,
+  ]);
+  expect((await passwordConnect(req('/api/auth/password', 'POST', credentials))).status).toBe(429);
+  expect(mocks.verifyMailbox).not.toHaveBeenCalled();
+});
+
+it('imports IMAP headers in bounded batches, refreshes labels, prunes deletions, and releases its lease', async () => {
+  await query("UPDATE accounts SET provider='app_password' WHERE id='account-a'");
+  const server = {
+    connect: vi.fn().mockResolvedValue(undefined),
+    close: vi.fn(),
+    list: vi
+      .fn()
+      .mockResolvedValue([{ path: '[Gmail]/All Mail', specialUse: '\\All', flags: new Set() }]),
+    mailboxOpen: vi.fn().mockResolvedValue({ uidValidity: 1n }),
+    search: vi.fn().mockResolvedValue(Array.from({ length: 26 }, (_, i) => i + 1)),
+    fetch: vi.fn().mockImplementation(async function* (uids: number[]) {
+      for (const uid of uids)
+        yield {
+          uid,
+          headers: Buffer.from(
+            `Subject: Message ${uid}\r\nFrom: sender@example.com\r\nTo: a@example.com\r\nMessage-ID: <${uid}@example.com>\r\n\r\n`,
+          ),
+          flags: new Set(['\\Seen']),
+          labels: new Set(['\\Inbox']),
+          internalDate: new Date(),
+        };
+    }),
+  };
+  mocks.imapClient.mockReturnValue(server);
+  expect(await syncMailbox(await account())).toMatchObject({ more: true, processed: 25 });
+  expect(await query("SELECT * FROM mailbox_messages WHERE account_id='account-a'")).toHaveLength(
+    25,
+  );
+  expect(await syncMailbox(await account())).toMatchObject({ more: false, processed: 1 });
+  expect(await query("SELECT * FROM mailbox_messages WHERE account_id='account-a'")).toHaveLength(
+    26,
+  );
+  server.search.mockResolvedValue([26]);
+  expect(await syncMailbox(await account())).toMatchObject({ more: false, processed: 1 });
+  expect(await query("SELECT * FROM mailbox_messages WHERE account_id='account-a'")).toHaveLength(
+    1,
+  );
+  expect(
+    (await query("SELECT sync_lock_until FROM accounts WHERE id='account-a'"))[0].sync_lock_until,
+  ).toBeNull();
+  server.connect.mockRejectedValue(new Error('network failed'));
+  await expect(syncMailbox(await account())).rejects.toThrow('network failed');
+  expect(
+    (await query("SELECT sync_lock_until FROM accounts WHERE id='account-a'"))[0].sync_lock_until,
+  ).toBeNull();
+  expect(server.close).toHaveBeenCalledTimes(4);
 });

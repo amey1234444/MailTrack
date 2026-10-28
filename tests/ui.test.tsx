@@ -88,3 +88,34 @@ it('starts a real workspace empty and loads only its API results', async () => {
   await waitFor(() => expect(fetch).toHaveBeenCalled(), { timeout: 2000 });
   expect(screen.getByText('Make your first connection')).toBeTruthy();
 });
+
+it('submits an App Password with explicit consent and displays server errors without exposing it', async () => {
+  const { default: ConnectForm } = await import('@/components/connect-form');
+  vi.mocked(fetch).mockResolvedValue(
+    new Response(JSON.stringify({ error: 'Mailbox verification failed' }), { status: 400 }),
+  );
+  render(<ConnectForm invite="one-use-invite" email="invited@gmail.com" />);
+  const password = screen.getByLabelText('Google App Password') as HTMLInputElement;
+  expect(password.type).toBe('password');
+  expect(
+    (screen.getByLabelText('Gmail or Google Workspace email') as HTMLInputElement).readOnly,
+  ).toBe(true);
+  fireEvent.change(password, { target: { value: 'abcdefghijklmnop' } });
+  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.submit(password.closest('form')!);
+  await waitFor(() =>
+    expect(screen.getByRole('alert').textContent).toBe('Mailbox verification failed'),
+  );
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/auth/password',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'invited@gmail.com',
+        password: 'abcdefghijklmnop',
+        consent: true,
+        invite: 'one-use-invite',
+      }),
+    }),
+  );
+});
