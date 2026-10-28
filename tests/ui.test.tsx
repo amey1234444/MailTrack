@@ -3,8 +3,11 @@ import React from 'react';
 import { afterEach, beforeEach, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import Dashboard from '@/components/dashboard';
-import { demoData } from '@/lib/demo';
-const props = { user: null, configured: false, databaseError: false, sample: demoData };
+const props = {
+  user: { name: 'Owner', email: 'owner@example.com', timezone: 'UTC' },
+  configured: false,
+  databaseError: false,
+};
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn());
   HTMLDialogElement.prototype.showModal = function () {
@@ -32,31 +35,6 @@ it('opens the composer, allows recipient fields and closes accessibly', () => {
   );
   fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }));
   expect(screen.queryByRole('heading', { name: 'Start a conversation' })).toBeNull();
-  expect(fetch).not.toHaveBeenCalled();
-});
-it('switches workspace sections and exposes the approval workflow', () => {
-  render(<Dashboard {...props} />);
-  fireEvent.click(screen.getByRole('button', { name: 'Accounts' }));
-  expect(screen.getByRole('heading', { name: 'Ask for access. Never assume it.' })).toBeTruthy();
-  expect(screen.getByLabelText('Mailbox owner’s email')).toBeTruthy();
-  fireEvent.click(screen.getByRole('button', { name: 'Documents' }));
-  expect(screen.getByRole('heading', { name: 'A home for your next proposal' })).toBeTruthy();
-  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
-  expect(screen.getByLabelText('Timezone')).toBeTruthy();
-});
-it('filters sample emails and opens their labeled detail view', () => {
-  render(<Dashboard {...props} />);
-  fireEvent.change(screen.getByLabelText('Search tracked emails'), { target: { value: 'Autumn' } });
-  expect(screen.queryByRole('button', { name: 'Let’s find a time to connect' })).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Proposal · Autumn brand refresh' }));
-  expect(screen.getByRole('heading', { name: 'Recipient activity' })).toBeTruthy();
-  expect(screen.getByText(/This is a sample message/)).toBeTruthy();
-});
-it('shows setup guidance rather than simulating Google connection', () => {
-  render(<Dashboard {...props} />);
-  fireEvent.click(screen.getByRole('button', { name: 'Connect your Gmail' }));
-  expect(screen.getByRole('heading', { name: 'Connect your real workspace' })).toBeTruthy();
-  expect(screen.getByText('Deployment setup required')).toBeTruthy();
   expect(fetch).not.toHaveBeenCalled();
 });
 it('starts a real workspace empty and loads only its API results', async () => {

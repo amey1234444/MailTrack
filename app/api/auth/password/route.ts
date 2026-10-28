@@ -80,5 +80,5 @@ export const POST = api(async (req) => {
     values,
   );
   await createSession(userId);
-  return Response.json({ redirect: '/?connected=1' });
+  return Response.json({ redirect: '/workspace?connected=1' });
 });

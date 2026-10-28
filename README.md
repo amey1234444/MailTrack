@@ -1,6 +1,6 @@
 # MailTrack
 
-A consent-based Gmail tracking workspace built with **Next.js, React, TypeScript and PostgreSQL**, ready to deploy on Vercel. A clearly labeled demo is available before configuration; real workspaces start empty.
+A consent-based Gmail tracking workspace built with **Next.js, React, TypeScript and PostgreSQL**, ready to deploy on Vercel. A public landing page and real sign-in flow lead to a protected workspace. All accounts start empty; no demo accounts or sample analytics are displayed.
 
 > **An open is an image request, not proof of reading.** MailTrack can sync existing mailbox metadata, but cannot retroactively add tracking to old messages or automatically modify messages sent directly from Gmail. Open/link tracking applies to emails sent through this app. A Gmail extension or add-on would be a separate integration.
 
@@ -75,7 +75,7 @@ After setting the environment variables, deploy. The Vercel build validates conf
 
 Use a separate database for preview deployments. Do not point untrusted preview code at your production database. Future schema changes must remain compatible with the previously deployed app because build-time migrations precede traffic promotion.
 
-The standard `npm run build` remains available for offline CI and demo builds. Local development can run `npm run db:migrate` explicitly.
+The standard `npm run build` remains available for offline CI builds. Local development can run `npm run db:migrate` explicitly.
 
 ### 5. Connect and verify
 
@@ -99,7 +99,7 @@ node --env-file=.env.local scripts/migrate.mjs
 npm run dev
 ```
 
-Open `http://localhost:3000`. Without configuration you can explore the labeled demo. External recipients cannot access localhost tracking URLs. Use a stable HTTPS deployment to test tracking.
+Open `http://localhost:3000`. The landing page is public; sign-in reports missing configuration explicitly. External recipients cannot access localhost tracking URLs. Use a stable HTTPS deployment to test tracking.
 
 `npm run dev` starts Next.js development mode. Preview runners passing `--strictPort` use the existing production build via the compatibility launcher; run `npm run build` before using that preview mode.
 
@@ -137,7 +137,7 @@ flowchart TD
 - `app/d`, `app/api/public/documents`: PDF viewing, authenticated bearer links and validated event collection.
 - `app/api/dashboard`, `messages`, `documents`, `export`: owner-scoped analytics.
 - `db/schema.sql`: relational persistence and cascading deletion.
-- `components/dashboard.tsx`: workspace UI with explicit demo/real separation.
+- `components/dashboard.tsx`: authenticated workspace UI backed exclusively by account APIs.
 
 ## Security and retention
 
@@ -173,3 +173,7 @@ The original GitHub CI run passed. The updated workflow also starts PostgreSQL 1
 Live App Password authentication, invitation delivery, recipient image loading, PDF rendering in a recipient browser, and production cron execution require a configured deployment and consenting test accounts. These have not been verified against your production services. The app collects mailbox credentials through its secure connection form after deployment. Google client ID and secret are not required.
 
 IMAP visibility is limited to folders exposed by Gmail; expose All Mail, Spam and Trash in IMAP settings for complete coverage. When All Mail is available, it is scanned together with Spam and Trash to avoid duplicate label-folder copies. If it is not available, all selectable folders are scanned, which can show duplicate messages. Previews are limited to messages up to 10 MB and do not download ordinary attachments separately. Gmail SMTP acceptance means the server accepted the message, not proof of inbox delivery.
+
+## Public pages and sign-in
+
+`/` is the product home page, `/login` signs in or creates a workspace using verified Gmail App Password credentials, `/help` explains connection steps, and `/workspace` requires a valid session. `/connect` adds a mailbox to the current workspace. Missing configuration or database failures never fall back to sample data. To allow public signup, leave `ALLOWED_EMAILS` empty; keep an allowlist for a private deployment. Account policies must support App Passwords. Dashboard activity refreshes every 30 seconds while visible; mailbox sync remains periodic.

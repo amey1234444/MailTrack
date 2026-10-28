@@ -86,7 +86,7 @@ export async function GET(req: Request) {
       );
     if (invitation) return Response.redirect(`${origin()}/approved`);
     await createSession(userId);
-    return Response.redirect(`${origin()}/?connected=1`);
+    return Response.redirect(`${origin()}/workspace?connected=1`);
   } catch (e) {
     jar.delete('mt_oauth');
     const message =

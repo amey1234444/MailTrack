@@ -45,9 +45,12 @@ import type {
   MailboxView,
 } from '@/lib/ui-types';
 import DocumentAnalytics from './document-analytics';
-import { demoAccount } from '@/lib/demo';
 type Tab = 'Overview' | 'Tracked emails' | 'Mailbox' | 'Documents' | 'Accounts' | 'Settings';
-type User = { name: string; email: string; timezone: string };
+type User = {
+  name: string;
+  email: string;
+  timezone: string;
+};
 const emptyData: DashboardData = {
   messages: [],
   hasMore: false,
@@ -127,19 +130,15 @@ export default function Dashboard({
   user,
   configured,
   databaseError,
-  sample,
 }: {
-  user: User | null;
+  user: User;
   configured: boolean;
   databaseError: boolean;
-  sample: DashboardData;
 }) {
-  const demoData = sample;
   const [documentAnalytics, setDocumentAnalytics] = useState<string | null>(null);
-  const demo = !user;
   const [tab, setTab] = useState<Tab>('Overview');
-  const [data, setData] = useState<DashboardData>(demo ? demoData : emptyData);
-  const [accounts, setAccounts] = useState<AccountView[]>(demo ? [demoAccount] : []);
+  const [data, setData] = useState<DashboardData>(emptyData);
+  const [accounts, setAccounts] = useState<AccountView[]>([]);
   const [docs, setDocs] = useState<DocumentView[]>([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -171,7 +170,6 @@ export default function Dashboard({
   );
   const load = useCallback(
     async (silent = false) => {
-      if (demo) return;
       if (!silent) setLoading(true);
       try {
         const [next, a, d] = await Promise.all([
@@ -200,19 +198,18 @@ export default function Dashboard({
         setLoading(false);
       }
     },
-    [demo, search, page, notify],
+    [false, search, page, notify],
   );
   useEffect(() => {
     const timer = setTimeout(() => void load(), 250);
     return () => clearTimeout(timer);
   }, [load]);
   useEffect(() => {
-    if (demo) return;
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') void load(true);
     }, 30000);
     return () => clearInterval(timer);
-  }, [demo, load]);
+  }, [false, load]);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.has('error')) setError(p.get('error')!);
@@ -235,10 +232,6 @@ export default function Dashboard({
     else setShowConnect(true);
   }
   async function sync(accountId?: string) {
-    if (demo) {
-      connect();
-      return;
-    }
     setSyncing(true);
     setError('');
     let total = 0;
@@ -250,7 +243,11 @@ export default function Dashboard({
         let more = true;
         let batches = 0;
         while (more && batches < 20) {
-          const r = await api<{ more: boolean; processed: number; busy?: boolean }>('/api/sync', {
+          const r = await api<{
+            more: boolean;
+            processed: number;
+            busy?: boolean;
+          }>('/api/sync', {
             method: 'POST',
             body: JSON.stringify({ accountId: a.id }),
           });
@@ -271,38 +268,12 @@ export default function Dashboard({
     }
   }
   async function openMessage(m: MessageView) {
-    if (demo) {
-      setDetail({
-        message: {
-          id: m.id,
-          subject: m.subject,
-          sender: m.sender,
-          body: 'This is a sample message in the demo workspace. Connect your Gmail account to send tracked emails and see your own activity here.',
-        },
-        deliveries: [
-          {
-            id: 'sample',
-            recipient: 'jordan@example.com',
-            recipient_type: 'to',
-            status: 'sent',
-            error: null,
-            sent_at: m.created_at,
-            replied_at: m.replies ? m.last_activity : null,
-            opens: m.opens,
-            clicks: m.clicks,
-            first_open: m.last_activity,
-          },
-        ],
-        events: demoData.activity
-          .filter((a) => a.message_id === m.id)
-          .map((a) => ({ ...a, detail: {} })),
-        eventLimit: 500,
-      });
-      return;
-    }
     await action(async () => setDetail(await api(`/api/messages/${m.id}`)));
   }
-  const tabs: { name: Tab; icon: LucideIcon }[] = [
+  const tabs: {
+    name: Tab;
+    icon: LucideIcon;
+  }[] = [
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'Tracked emails', icon: Mail },
     { name: 'Mailbox', icon: Inbox },
@@ -323,7 +294,7 @@ export default function Dashboard({
           <div className="avatar">{(user?.name || 'Demo workspace')[0]}</div>
           <div>
             <strong>{user ? `${user.name.split(' ')[0]}’s workspace` : 'Demo workspace'}</strong>
-            <span>{demo ? 'Explore what’s possible' : 'Personal workspace'}</span>
+            <span>{'Personal workspace'}</span>
           </div>
           <ChevronDown size={15} />
         </div>
@@ -360,15 +331,15 @@ export default function Dashboard({
           </div>
           <button className="profile" onClick={() => setTab('Settings')}>
             <span className="profile-avatar">
-              {(user?.name || 'Alex Morgan')
+              {(user?.name || 'Workspace owner')
                 .split(' ')
                 .map((x) => x[0])
                 .slice(0, 2)
                 .join('')}
             </span>
             <span>
-              <strong>{user?.name || 'Alex Morgan'}</strong>
-              <small>{demo ? 'Sample account' : 'Workspace owner'}</small>
+              <strong>{user?.name || 'Workspace owner'}</strong>
+              <small>{'Workspace owner'}</small>
             </span>
             <MoreHorizontal size={18} />
           </button>
@@ -398,7 +369,7 @@ export default function Dashboard({
           <div className="top-actions">
             <span className="live-indicator">
               <i />
-              {demo ? 'Demo mode' : lastUpdated ? 'Connected' : 'Your workspace'}
+              {lastUpdated ? 'Connected' : 'Your workspace'}
             </span>
             <a
               href="https://github.com/amey1234444/MailTrack"
@@ -411,17 +382,7 @@ export default function Dashboard({
           </div>
         </header>
         <div className="content">
-          {demo && (
-            <div className="demo-banner">
-              <span>
-                <span className="tiny-label">DEMO</span> Take a look around. Everything below is
-                sample data.
-              </span>
-              <button onClick={connect}>
-                Connect your Gmail <ArrowRight size={16} />
-              </button>
-            </div>
-          )}
+          {false}
           {databaseError && (
             <div className="alert error">
               The database could not be reached. Check DATABASE_URL and run the migration.
@@ -480,10 +441,6 @@ export default function Dashboard({
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
-                    if (demo) {
-                      connect();
-                      return;
-                    }
                     void action(async () => {
                       const form = new FormData();
                       form.set('file', f);
@@ -539,11 +496,7 @@ export default function Dashboard({
                     </div>
                     <div className="stat-value">
                       {s.value.toLocaleString()}
-                      {demo && (
-                        <span className="mini-spark" aria-hidden="true">
-                          ▂▃▂▅▄▆▅▇
-                        </span>
-                      )}
+                      {false}
                     </div>
                     <div className="stat-note">
                       {s.label === 'Replies received' ? (
@@ -584,7 +537,7 @@ export default function Dashboard({
                 <section className="panel activity-panel">
                   <div className="panel-heading">
                     <h2>Latest activity</h2>
-                    <span className="activity-live">{demo ? 'Sample' : 'Recent'}</span>
+                    <span className="activity-live">{'Recent'}</span>
                   </div>
                   <div className="activity-list">
                     {data.activity.slice(0, 4).map((a) => {
@@ -644,16 +597,7 @@ export default function Dashboard({
                       View all emails <ArrowUpRight size={16} />
                     </button>
                   ) : (
-                    <a
-                      className="button secondary small"
-                      href={demo ? undefined : '/api/export'}
-                      onClick={(e) => {
-                        if (demo) {
-                          e.preventDefault();
-                          connect();
-                        }
-                      }}
-                    >
+                    <a className="button secondary small" href={'/api/export'} onClick={(e) => {}}>
                       <ArrowDownToLine size={16} />
                       Export CSV
                     </a>
@@ -691,12 +635,7 @@ export default function Dashboard({
                     </tr>
                   </thead>
                   <tbody>
-                    {(demo
-                      ? data.messages.filter((m) =>
-                          m.subject.toLowerCase().includes(search.toLowerCase()),
-                        )
-                      : data.messages
-                    ).map((m, i) => (
+                    {data.messages.map((m, i) => (
                       <tr key={m.id} onClick={() => void openMessage(m)}>
                         <td>
                           <div className="email-cell">
@@ -793,7 +732,6 @@ export default function Dashboard({
           {tab === 'Mailbox' && (
             <Mailbox
               accounts={accounts}
-              demo={demo}
               time={time}
               sync={sync}
               syncing={syncing}
@@ -860,7 +798,6 @@ export default function Dashboard({
           {tab === 'Accounts' && (
             <Accounts
               accounts={accounts}
-              demo={demo}
               connect={connect}
               sync={sync}
               syncing={syncing}
@@ -897,10 +834,6 @@ export default function Dashboard({
                 <button
                   className="button primary"
                   onClick={() => {
-                    if (demo) {
-                      setNotice('Demo timezone updated for this view.');
-                      return;
-                    }
                     void action(async () => {
                       await api('/api/settings', {
                         method: 'PATCH',
@@ -953,7 +886,7 @@ export default function Dashboard({
                     Privacy & tracking details
                     <ArrowUpRight size={16} />
                   </a>
-                  {!demo && (
+                  {
                     <button
                       className="button secondary"
                       onClick={() =>
@@ -966,9 +899,9 @@ export default function Dashboard({
                       <LogOut size={16} />
                       Sign out
                     </button>
-                  )}
+                  }
                 </div>
-                {!demo && (
+                {
                   <button
                     className="button danger-outline"
                     onClick={() => {
@@ -987,7 +920,7 @@ export default function Dashboard({
                   >
                     Delete workspace and all data
                   </button>
-                )}
+                }
               </div>
             </section>
           )}
@@ -1008,7 +941,6 @@ export default function Dashboard({
         <Compose
           accounts={accounts}
           docs={docs}
-          demo={demo}
           close={() => setCompose(false)}
           connect={connect}
           done={async (result) => {
@@ -1061,26 +993,27 @@ export default function Dashboard({
               </table>
             </div>
             <div className="button-row">
-              {!demo &&
-                detail.deliveries.some((d) => ['pending', 'sending'].includes(d.status)) && (
-                  <button
-                    className="button secondary small"
-                    onClick={() =>
-                      void action(async () => {
-                        const m = detail.message;
-                        let r = await api<{ more: boolean }>(`/api/messages/${m.id}/continue`, {
-                          method: 'POST',
-                        });
-                        while (r.more)
-                          r = await api(`/api/messages/${m.id}/continue`, { method: 'POST' });
-                        setDetail(await api(`/api/messages/${m.id}`));
-                        await load(true);
-                      })
-                    }
-                  >
-                    Continue pending deliveries
-                  </button>
-                )}
+              {detail.deliveries.some((d) => ['pending', 'sending'].includes(d.status)) && (
+                <button
+                  className="button secondary small"
+                  onClick={() =>
+                    void action(async () => {
+                      const m = detail.message;
+                      let r = await api<{
+                        more: boolean;
+                      }>(`/api/messages/${m.id}/continue`, {
+                        method: 'POST',
+                      });
+                      while (r.more)
+                        r = await api(`/api/messages/${m.id}/continue`, { method: 'POST' });
+                      setDetail(await api(`/api/messages/${m.id}`));
+                      await load(true);
+                    })
+                  }
+                >
+                  Continue pending deliveries
+                </button>
+              )}
             </div>
             <h3>Activity timeline</h3>
             <p className="muted">
@@ -1221,14 +1154,12 @@ function ActivityChart({ data, timezone }: { data: DashboardData['chart']; timez
 function Compose({
   accounts,
   docs,
-  demo,
   close,
   connect,
   done,
 }: {
   accounts: AccountView[];
   docs: DocumentView[];
-  demo: boolean;
   close: () => void;
   connect: () => void;
   done: (message: string) => Promise<void>;
@@ -1261,30 +1192,28 @@ function Compose({
         className="compose"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (demo) {
-            close();
-            connect();
-            return;
-          }
           setBusy(true);
           setError('');
           try {
-            let r = await api<{ id: string; more: boolean; deliveries: { status: string }[] }>(
-              '/api/send',
-              {
-                method: 'POST',
-                body: JSON.stringify({
-                  accountId,
-                  requestKey,
-                  to: split(to),
-                  cc: split(cc),
-                  bcc: split(bcc),
-                  subject,
-                  body,
-                  documentIds: selected,
-                }),
-              },
-            );
+            let r = await api<{
+              id: string;
+              more: boolean;
+              deliveries: {
+                status: string;
+              }[];
+            }>('/api/send', {
+              method: 'POST',
+              body: JSON.stringify({
+                accountId,
+                requestKey,
+                to: split(to),
+                cc: split(cc),
+                bcc: split(bcc),
+                subject,
+                body,
+                documentIds: selected,
+              }),
+            });
             while (r.more) {
               r = await api<typeof r>(`/api/messages/${r.id}/continue`, { method: 'POST' });
             }
@@ -1395,9 +1324,9 @@ function Compose({
             <CheckCheck size={16} />
             Open & link tracking enabled
           </span>
-          <button className="button primary" disabled={busy || (!demo && !accountId)}>
+          <button className="button primary" disabled={busy || !accountId}>
             {busy ? <LoaderCircle size={17} className="spin" /> : <Send size={17} />}{' '}
-            {busy ? 'Sending…' : demo ? 'Connect to send' : 'Send tracked email'}
+            {busy ? 'Sending…' : 'Send tracked email'}
           </button>
         </div>
       </form>
@@ -1406,7 +1335,6 @@ function Compose({
 }
 function Accounts({
   accounts,
-  demo,
   connect,
   sync,
   syncing,
@@ -1416,7 +1344,6 @@ function Accounts({
   time,
 }: {
   accounts: AccountView[];
-  demo: boolean;
   connect: () => void;
   sync: (id?: string) => Promise<void>;
   syncing: boolean;
@@ -1429,11 +1356,16 @@ function Accounts({
   const [sender, setSender] = useState(accounts[0]?.id || '');
   const [busy, setBusy] = useState(false);
   const [invites, setInvites] = useState<
-    { id: string; email: string; expires_at: string; used_at: string | null }[]
+    {
+      id: string;
+      email: string;
+      expires_at: string;
+      used_at: string | null;
+    }[]
   >([]);
   const refresh = useCallback(async () => {
-    if (!demo) setInvites(await api('/api/invites'));
-  }, [demo]);
+    setInvites(await api('/api/invites'));
+  }, [false]);
   useEffect(() => {
     void action(refresh);
   }, [refresh]);
@@ -1478,10 +1410,6 @@ function Accounts({
                 className="icon-button danger"
                 aria-label={`Disconnect ${a.email}`}
                 onClick={() => {
-                  if (demo) {
-                    connect();
-                    return;
-                  }
                   if (
                     window.confirm(
                       'Delete this mailbox’s stored credentials, synced messages, and tracking history? Delete its App Password in Google settings to invalidate the password itself.',
@@ -1523,10 +1451,6 @@ function Accounts({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (demo) {
-              connect();
-              return;
-            }
             setBusy(true);
             void action(async () => {
               await api('/api/invites', {
@@ -1611,7 +1535,6 @@ function Accounts({
 }
 function Mailbox({
   accounts,
-  demo,
   time,
   sync,
   syncing,
@@ -1619,7 +1542,6 @@ function Mailbox({
   connect,
 }: {
   accounts: AccountView[];
-  demo: boolean;
   time: (s: string | null) => string;
   sync: (id?: string) => Promise<void>;
   syncing: boolean;
@@ -1629,13 +1551,20 @@ function Mailbox({
   const [account, setAccount] = useState(accounts[0]?.id || '');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(0);
-  const [items, setItems] = useState<{ messages: MailboxView[]; total: number; hasMore: boolean }>({
+  const [items, setItems] = useState<{
+    messages: MailboxView[];
+    total: number;
+    hasMore: boolean;
+  }>({
     messages: [],
     total: 0,
     hasMore: false,
   });
   const [opened, setOpened] = useState<{
-    headers: { name: string; value: string }[];
+    headers: {
+      name: string;
+      value: string;
+    }[];
     text: string;
     gmailId: string;
   } | null>(null);
@@ -1643,14 +1572,14 @@ function Mailbox({
     if (!account && accounts.length) setAccount(accounts[0].id);
   }, [accounts, account]);
   useEffect(() => {
-    if (demo || !account) return;
+    if (false || !account) return;
     const t = setTimeout(() => {
       api<typeof items>(`/api/mailbox?accountId=${account}&q=${encodeURIComponent(q)}&page=${page}`)
         .then(setItems)
         .catch((e) => onError(e.message));
     }, 250);
     return () => clearTimeout(t);
-  }, [demo, account, q, page, syncing, onError]);
+  }, [false, account, q, page, syncing, onError]);
   return (
     <section className="panel">
       <div className="panel-heading">
@@ -1697,46 +1626,38 @@ function Mailbox({
           />
         </label>
       </div>
-      {demo ? (
-        <Empty
-          icon={Inbox}
-          title="Your inbox belongs here"
-          text="Connect Gmail to securely sync your own mailbox. No real mailbox data is used in this demo."
-        />
-      ) : (
-        items.messages.map((m) => (
-          <button
-            className="mailbox-row"
-            key={m.gmail_id}
-            onClick={() =>
-              void api<typeof opened>(`/api/mailbox/${m.gmail_id}?accountId=${account}`)
-                .then(setOpened)
-                .catch((e) => onError(e.message))
-            }
-          >
-            <span className="email-avatar color-1">
-              <Mail size={18} />
+      {items.messages.map((m) => (
+        <button
+          className="mailbox-row"
+          key={m.gmail_id}
+          onClick={() =>
+            void api<typeof opened>(`/api/mailbox/${m.gmail_id}?accountId=${account}`)
+              .then(setOpened)
+              .catch((e) => onError(e.message))
+          }
+        >
+          <span className="email-avatar color-1">
+            <Mail size={18} />
+          </span>
+          <span>
+            <strong>{m.subject}</strong>
+            <small>{m.sender}</small>
+            <p>{m.snippet}</p>
+            <span className="mailbox-labels">
+              {m.labels
+                .filter((l) => !l.startsWith('CATEGORY_'))
+                .slice(0, 4)
+                .map((l) => (
+                  <Badge tone="gray" key={l}>
+                    {l}
+                  </Badge>
+                ))}
             </span>
-            <span>
-              <strong>{m.subject}</strong>
-              <small>{m.sender}</small>
-              <p>{m.snippet}</p>
-              <span className="mailbox-labels">
-                {m.labels
-                  .filter((l) => !l.startsWith('CATEGORY_'))
-                  .slice(0, 4)
-                  .map((l) => (
-                    <Badge tone="gray" key={l}>
-                      {l}
-                    </Badge>
-                  ))}
-              </span>
-            </span>
-            <time>{time(m.received_at)}</time>
-          </button>
-        ))
-      )}
-      {!demo && !items.messages.length && (
+          </span>
+          <time>{time(m.received_at)}</time>
+        </button>
+      ))}
+      {!items.messages.length && (
         <Empty
           icon={Inbox}
           title="Ready when you are"
@@ -1759,11 +1680,7 @@ function Mailbox({
         >
           Next
         </button>
-        {demo && (
-          <button className="button primary small" onClick={connect}>
-            Connect Gmail
-          </button>
-        )}
+        {false}
       </div>
       {opened && (
         <Modal title="Mailbox message" wide onClose={() => setOpened(null)}>
