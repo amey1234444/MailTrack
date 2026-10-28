@@ -1,7 +1,11 @@
 import pg from 'pg';
 import { readFileSync } from 'node:fs';
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  connectionTimeoutMillis: 15000,
+  statement_timeout: 60000,
+});
 const client = await pool.connect();
 try {
   await client.query('BEGIN');

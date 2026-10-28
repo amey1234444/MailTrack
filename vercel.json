@@ -1,1 +1,11 @@
-{ "crons": [{ "path": "/api/cron", "schedule": "0 3 * * *" }] }
+{
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 3 * * *"
+    }
+  ],
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run vercel-build"
+}

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "db:migrate": "node scripts/migrate.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "format:check": "prettier --check app components lib tests scripts README.md next.config.ts"
+    "format:check": "prettier --check app components lib tests scripts README.md next.config.ts",
+    "vercel-build": "node scripts/vercel-build.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

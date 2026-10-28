@@ -61,7 +61,7 @@ Official references: [Gmail scopes](https://developers.google.com/workspace/gmai
 - Framework: **Next.js**
 - Node.js: **24.x** recommended (minimum 22.13)
 - Install command: `npm ci`
-- Build command: `npm run build`
+- Build command: `npm run vercel-build` (configured in `vercel.json`)
 - Output: leave the Next.js default
 - Use one stable production domain. Preview deployments need their own matching OAuth redirect URI and `APP_URL` if you want OAuth there.
 
@@ -85,18 +85,13 @@ openssl rand -base64 32
 
 Keep the encryption key stable and backed up securely. Replacing it makes previously stored Google tokens unreadable; reconnect mailboxes after an intentional key change. Store credentials in your local untracked `.env.local` or Vercel’s encrypted environment settings, never in Git.
 
-### 4. Initialize the database
+### 4. Deploy — schema initialization is automatic
 
-Run from a local clone with the production `DATABASE_URL` supplied securely in your shell, or put it in an untracked `.env.local`:
+After setting the environment variables, deploy. The Vercel build validates configuration, runs the test suite, creates a production build, then initializes the schema inside a transaction with an advisory lock. A failed test, build or migration fails deployment. No manual database command is required on Vercel. The database role must be allowed to create tables and indexes.
 
-```bash
-npm ci
-node --env-file=.env.local scripts/migrate.mjs
-```
+Use a separate database for preview deployments. Do not point untrusted preview code at your production database. Future schema changes must remain compatible with the previously deployed app because build-time migrations precede traffic promotion.
 
-Alternatively run `npm run db:migrate` when `DATABASE_URL` is already exported. The schema migration uses a transaction and advisory lock. Run it against a fresh database before first sign-in. It can safely be rerun. Do not run schema changes automatically in every serverless invocation.
-
-Redeploy after configuring environment variables. Open the app and click **Connect your Gmail**. If setup is missing, the app shows a setup dialog instead of pretending to connect.
+The standard `npm run build` remains available for offline CI and demo builds. Local development can run `npm run db:migrate` explicitly.
 
 ### 5. Connect and verify
 
@@ -181,8 +176,14 @@ npm run build
 npm audit --omit=dev
 ```
 
-The 35 automated tests include UI component interactions in jsdom and use **PGlite (real embedded PostgreSQL)** for schema and query execution, and stub only external Gmail/Google network calls and the Next cookie adapter. They cover tenant isolation, token encryption, origin enforcement, invitations and state binding, batch/idempotent sends, uncertain-send reconciliation, pixel and click collection, reply matching, full/history sync, expired history, PDF event validation, analytics, CSV export and cascading deletion.
+The automated tests include UI component interactions in jsdom and use **PGlite (real embedded PostgreSQL)** for schema and query execution, and stub only external Gmail/Google network calls and the Next cookie adapter. They cover tenant isolation, token encryption, origin enforcement, invitations and state binding, batch/idempotent sends, uncertain-send reconciliation, pixel and click collection, reply matching, full/history sync, expired history, PDF event validation, analytics, CSV export and cascading deletion.
 
 Google’s live consent screens, real message delivery, actual Gmail image caching and a deployed Vercel/database combination must be verified with your own credentials after deployment. The dashboard was visually reviewed in the browser preview; subsequent browser interaction checks were blocked by the browser environment, so full browser end-to-end verification is not claimed. Passing local tests is not a guarantee of perfect tracking or production readiness for every scale.
 
 CI runs tests, TypeScript checks, a production build and the production-dependency vulnerability audit for pushes and pull requests.
+
+## Deployment validation status
+
+The original GitHub CI run passed. The updated workflow also starts PostgreSQL 16 and runs schema initialization twice to verify first deployment and repeat deployment. Vercel builds run tests before building and initializing the configured database.
+
+Live Google consent, invitation delivery, recipient image loading, PDF rendering in a recipient browser, and production cron execution still require a configured deployment and consenting test accounts. These have not been verified against your production services. Environment variables alone cannot provision PostgreSQL, create the OAuth client, enable Gmail API or register the redirect URI. Complete those provider prerequisites once, then Vercel handles the application build and schema initialization.

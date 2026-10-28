@@ -2062,3 +2062,168 @@ textarea::placeholder {
 .document-card .text-button {
   margin: 7px 0;
 }
+/* Refined workspace typography and contrast */
+:root {
+  --muted: #647064;
+  --line: #e1e7dd;
+}
+.content {
+  max-width: 1600px;
+}
+.page-heading p {
+  font-size: 13px;
+  color: #637160;
+  max-width: 720px;
+}
+.eyebrow {
+  font-size: 10px;
+  color: #617650;
+}
+.panel {
+  box-shadow: 0 2px 8px #23352104;
+}
+.panel-heading p {
+  font-size: 12px;
+  color: #69775f;
+}
+.stat-title {
+  font-size: 13px;
+  color: #52634c;
+}
+.stat-note {
+  font-size: 11px;
+  color: #68785b;
+}
+.stat-value {
+  font-size: 36px;
+  margin: 13px 0 16px;
+}
+.subject-button {
+  font-size: 13px;
+  color: #263c23;
+}
+.email-cell small {
+  font-size: 11px;
+  color: #708064;
+}
+.badge {
+  font-size: 10px;
+  padding: 5px 8px;
+}
+th {
+  font-size: 10px;
+  color: #657758;
+  padding-block: 13px;
+}
+td {
+  font-size: 12px;
+  padding-block: 19px;
+}
+.date-cell {
+  font-size: 11px;
+  color: #6e7e60;
+}
+.activity-item strong {
+  font-size: 12px;
+}
+.activity-item p {
+  font-size: 11px;
+  color: #6e7e63;
+}
+.activity-item small {
+  font-size: 10px;
+  color: #758568;
+}
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+}
+.chart {
+  flex: 1;
+  min-height: 200px;
+}
+.chart-legend {
+  font-size: 10px;
+}
+.chart-y,
+.bar-column > span {
+  font-size: 10px;
+}
+.search input {
+  font-size: 12px;
+  width: 210px;
+}
+.search {
+  padding: 9px 12px;
+}
+.button {
+  font-size: 12px;
+  padding: 12px 17px;
+}
+nav button {
+  font-size: 13px;
+}
+.nav-label {
+  font-size: 10px;
+}
+.workspace strong {
+  font-size: 12px;
+}
+.workspace span {
+  font-size: 11px;
+}
+.demo-banner {
+  font-size: 12px;
+  padding: 12px 16px;
+}
+.demo-banner button {
+  font-size: 12px;
+}
+.page-footer {
+  font-size: 10px;
+  color: #6d7e60;
+}
+.empty p {
+  font-size: 13px;
+  color: #718064;
+}
+.field {
+  font-size: 13px;
+}
+.field input,
+.field select {
+  font-size: 14px;
+}
+.compose-field input,
+.compose-field select {
+  font-size: 14px;
+}
+.compose > textarea {
+  font-size: 15px;
+}
+.compose-note p {
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .stat-title {
+    font-size: 12px;
+  }
+  .stat-note {
+    font-size: 10px;
+  }
+  .stat-value {
+    font-size: 30px;
+  }
+  .demo-banner {
+    font-size: 11px;
+  }
+  .search input {
+    width: 100%;
+  }
+  .page-heading h1 {
+    font-size: 28px;
+  }
+  .chart {
+    min-height: 185px;
+  }
+}
