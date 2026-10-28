@@ -44,6 +44,7 @@ import type {
   MessageView,
   MailboxView,
 } from '@/lib/ui-types';
+import Switch from './ui/switch';
 import DocumentAnalytics from './document-analytics';
 type Tab = 'Overview' | 'Tracked emails' | 'Mailbox' | 'Documents' | 'Accounts' | 'Settings';
 type User = {
@@ -852,10 +853,11 @@ export default function Dashboard({
                   Get new-activity notifications while this dashboard is open. Proxy and automated
                   requests can trigger them.
                 </p>
-                <button
-                  className="button secondary"
-                  onClick={() =>
-                    void action(async () => {
+                <Switch
+                  checked={notify}
+                  label="Desktop notifications"
+                  onCheckedChange={async () => {
+                    await action(async () => {
                       if (!('Notification' in window))
                         throw new Error('This browser does not support desktop notifications');
                       if (notify) {
@@ -868,11 +870,9 @@ export default function Dashboard({
                         setNotice(
                           'Notifications were not enabled. You can change this in browser settings.',
                         );
-                    })
-                  }
-                >
-                  {notify ? 'Disable notifications' : 'Enable notifications'}
-                </button>
+                    });
+                  }}
+                />
               </div>
               <div>
                 <h2>Your data, your choice</h2>

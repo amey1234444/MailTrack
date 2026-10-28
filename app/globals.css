@@ -2513,3 +2513,258 @@ nav button {
     transform: none;
   }
 }
+
+/* Uiverse cssbuttons-io/mean-dolphin-24, MIT; adapted palette, geometry and semantics. */
+.mt-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 52px;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #283c30;
+  text-align: left;
+  font: inherit;
+}
+.mt-switch-border {
+  border: 2px solid #e5e8df;
+  border-radius: 130px;
+  padding: 3px 5px;
+  background: linear-gradient(to bottom right, white, #dce2d5), white;
+  box-shadow: 0 0 0 2px #fafbf8;
+  display: flex;
+  align-items: center;
+}
+.mt-switch-track {
+  position: relative;
+  display: block;
+  width: 55px;
+  height: 23px;
+  background: #a3aa9c;
+  border-radius: 80px;
+  box-shadow: inset 0 0 12px #0003;
+  transition: background 0.25s;
+}
+.mt-switch-handle {
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 31px;
+  height: 31px;
+  border: 1px solid #e5e5e5;
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      #c8c8c833 0%,
+      #c8c8c833 2%,
+      transparent 2%,
+      transparent 3%,
+      #c8c8c833 3%,
+      transparent 3%
+    ),
+    conic-gradient(
+      white 0%,
+      silver 10%,
+      white 35%,
+      silver 45%,
+      white 60%,
+      silver 70%,
+      white 80%,
+      silver 95%,
+      white 100%
+    );
+  border-radius: 50%;
+  box-shadow: 2px 3px 6px #0003;
+  transition: transform 0.25s;
+}
+.mt-switch[aria-checked='true'] .mt-switch-track {
+  background: #607f47;
+}
+.mt-switch[aria-checked='true'] .mt-switch-handle {
+  transform: translateX(30px);
+}
+.mt-switch-copy {
+  display: grid;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.mt-switch-copy small {
+  font-weight: 400;
+  color: #64715d;
+  font-size: 12px;
+}
+.mt-switch:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.mt-switch:focus-visible {
+  outline: 3px solid #779a55;
+  outline-offset: 5px;
+  border-radius: 12px;
+}
+/* Shared control finishes across authentication, workspace, documents and public pages. */
+:root {
+  --control-ring: #7d9b60;
+  --surface-stroke: #dce3d5;
+}
+.button {
+  min-height: 44px;
+  border-radius: 12px;
+  transition:
+    box-shadow 0.18s,
+    transform 0.18s,
+    background 0.18s;
+}
+.button.primary {
+  box-shadow:
+    inset 0 1px 0 #ffffff24,
+    0 4px 10px #213a3012;
+}
+.button.secondary {
+  box-shadow: 0 2px 4px #213a3008;
+}
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px #213a301a;
+}
+.button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 4px #213a3015;
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--control-ring);
+  outline-offset: 3px;
+}
+.field input,
+.field select,
+.field textarea,
+.connect-form input:not([type='checkbox']) {
+  border-color: var(--surface-stroke);
+  box-shadow: inset 0 1px 3px #213a3005;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+  background: #fff;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.connect-form input:not([type='checkbox']):focus {
+  border-color: #7e9a61;
+  box-shadow: 0 0 0 4px #7e9a6114;
+}
+input[type='checkbox'] {
+  accent-color: #607f47;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+.panel,
+.public-card,
+.auth-card {
+  border-radius: 20px;
+}
+.panel {
+  box-shadow: 0 3px 18px #23362d05;
+}
+.feature-grid article {
+  padding: 24px;
+  border: 1px solid var(--surface-stroke);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff, #f5f7f0);
+}
+.icon-button {
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 10px;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s;
+}
+.icon-button:hover {
+  background: #edf1e7;
+}
+.icon-button.danger:hover {
+  background: #fff0ed;
+  color: #a63c2b;
+}
+.modal {
+  box-shadow: 0 30px 100px #172b3333;
+  border-radius: 22px;
+}
+.modal::backdrop {
+  background: #172b3355;
+  backdrop-filter: blur(4px);
+}
+.badge {
+  border-radius: 8px;
+  font-weight: 600;
+}
+.empty {
+  padding: 48px 24px;
+}
+.empty p {
+  max-width: 420px;
+  margin-inline: auto;
+  line-height: 1.75;
+}
+.connect-form [role='alert'],
+.auth-alert {
+  border: 1px solid #e8d6bb;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff8ec;
+}
+@media (max-width: 600px) {
+  .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .button {
+    min-height: 46px;
+  }
+  .feature-grid article {
+    padding: 22px;
+  }
+  .mt-switch {
+    min-height: 56px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  .mt-switch-track {
+    border: 1px solid ButtonText;
+  }
+  .mt-switch-handle {
+    background: ButtonText;
+  }
+  .mt-switch[aria-checked='true'] .mt-switch-track {
+    background: Highlight;
+  }
+}
